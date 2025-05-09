@@ -1,0 +1,37 @@
+name: Update Firefox and GeckoDriver Versions
+
+on:
+  schedule:
+    - cron: '0 0 * * 0' # Runs weekly on Sunday at midnight
+  workflow_dispatch:
+
+jobs:
+  update-versions:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install requests
+
+      - name: Run update script
+        run: python .github/scripts/firefox_update.py
+
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v7
+        with:
+          commit-message: 'chore: update Firefox ESR and GeckoDriver versions'
+          branch: chore/update-firefox-geckodriver
+          title: 'chore: update Firefox ESR and GeckoDriver versions'
+          body: |
+            This PR updates the following versions:
+            - Firefox ESR: [new version]
+            - GeckoDriver: [new version]
+          delete-branch: true

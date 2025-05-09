@@ -1,0 +1,22 @@
+[tool.black]
+line-length = 79
+target-version = ['py311', 'py312']
+skip-string-normalization = true
+preview = false
+
+# Only touch .py files
+include = '\.pyi?$'
+
+# Don't format these directories
+exclude = '''
+/(
+  \.git
+  | \.hg
+  | \.mypy_cache
+  | \.tox
+  | venv
+  | build
+  | dist
+)/
+'''
+

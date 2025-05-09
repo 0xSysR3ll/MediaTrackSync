@@ -1,0 +1,28 @@
+services:
+  mediatracksync:
+    image: ghcr.io/0xsysr3ll/mediatracksync:latest
+    container_name: mediatracksync
+    labels:
+      traefik.enable: true
+      # Replace mediatracksync.example.com with your actual domain
+      traefik.http.routers.mediatracksync.rule: Host(`mediatracksync.example.com`)
+      traefik.http.routers.mediatracksync.entrypoints: https
+      traefik.http.routers.mediatracksync.tls: true
+      traefik.http.services.mediatracksync.loadbalancer.server.port: 5000
+      traefik.http.routers.mediatracksync.middlewares: "default@file"
+      traefik.docker.network: "traefik_backend"
+    environment:
+      - TZ=Etc/UTC # Set your timezone
+    configs:
+      - source: mediatracksync_config
+        target: /app/config/config.yml
+    networks:
+      traefik_backend:
+
+configs:
+  mediatracksync_config:
+    file: ${PWD}/config/config.yml
+
+networks:
+  traefik_backend:
+    external: true

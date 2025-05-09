@@ -1,0 +1,19 @@
+services:
+  mediatracksync:
+    image: ghcr.io/0xsysr3ll/mediatracksync:latest
+    container_name: mediatracksync
+    environment:
+      - TZ=Etc/UTC # Set your timezone
+    configs:
+      - source: tvtime_config
+        target: /app/config/config.yml
+    networks:
+      - default
+
+configs:
+  tvtime_config:
+    file: ${PWD}/config/config.yml
+
+networks:
+  default:
+    driver: bridge
