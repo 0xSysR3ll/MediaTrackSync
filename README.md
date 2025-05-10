@@ -176,6 +176,22 @@ services:
     command: python -m flask run --host=0.0.0.0 --port=5000
 ```
 
+### Docker Run
+
+To run the container directly with Docker:
+
+```bash
+docker run -d \
+  --name mediatracksync \
+  -p 5000:5000 \
+  -v $(pwd)/config:/app/config \
+  -v $(pwd)/logs:/app/logs \
+  -e PORT=5000 \
+  -e FLASK_ENV=production \
+  ghcr.io/0xsysr3ll/mediatracksync:latest \
+  python -m flask run --host=0.0.0.0 --port=5000
+```
+
 ## 🛠️ Development
 
 <details>
