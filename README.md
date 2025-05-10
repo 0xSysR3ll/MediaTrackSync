@@ -143,39 +143,23 @@ See the [Jellyfin Webhook Guide](https://github.com/0xsysr3ll/mediatracksync/wik
 
 ### Production
 
-For production deployment, use Gunicorn as the WSGI server:
+For production deployment, you can use Flask's built-in server with proper environment variables:
 
-1. Install Gunicorn:
-   ```bash
-   pip install gunicorn
-   ```
+```bash
+export FLASK_ENV=production
+export FLASK_APP=app:create_app()
+python -m flask run --host=0.0.0.0 --port=5000
+```
 
-2. Start the application:
-   ```bash
-   gunicorn -w 4 -b 0.0.0.0:5000 "app:create_app()"
-   ```
-
-## 🐳 Docker
-
-### Quick Start
-
-1. Pull the Docker image:
-   ```bash
-   docker pull ghcr.io/0xsysr3ll/mediatracksync:latest
-   ```
-2. Run the container:
-   ```bash
-   docker run -d \
-     -p 5000:5000 \
-     -v $(pwd)/config:/app/config \
-     -v $(pwd)/logs:/app/logs \
-     --name mediatracksync \
-     ghcr.io/0xsysr3ll/mediatracksync:latest
-   ```
+> [!NOTE]
+> We use Flask's built-in server because the application uses Selenium for TVtime integration, which requires a proper browser environment. For better production deployment, consider:
+> - Using a reverse proxy (like Nginx) in front of the application
+> - Setting up proper logging and monitoring
+> - Implementing proper process management (like systemd)
 
 ### Docker Compose
 
-For production deployment, use Docker Compose with Gunicorn:
+For production deployment, use Docker Compose:
 
 ```yaml
 services:
@@ -188,7 +172,8 @@ services:
       - ./logs:/app/logs
     environment:
       - PORT=5000
-    command: gunicorn -w 4 -b 0.0.0.0:5000 "app:create_app()"
+      - FLASK_ENV=production
+    command: python -m flask run --host=0.0.0.0 --port=5000
 ```
 
 ## 🛠️ Development

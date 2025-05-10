@@ -18,8 +18,7 @@ WORKDIR /app
 COPY requirements.txt .
 
 # Install Python dependencies
-RUN pip install --no-cache-dir -r requirements.txt && \
-    pip install --no-cache-dir gunicorn
+RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy application code
 COPY . .
@@ -32,6 +31,9 @@ RUN mkdir -p logs && \
 ENV PYTHONUNBUFFERED=1
 ENV FIREFOX_BIN=/usr/bin/firefox-esr
 ENV GECKODRIVER_PATH=/usr/bin/geckodriver
+ENV FLASK_APP=app:create_app()
+ENV FLASK_ENV=production
+ENV FLASK_DEBUG=0
 
 # Switch to non-root user
 USER mediatrack
@@ -39,5 +41,5 @@ USER mediatrack
 # Expose port
 EXPOSE 5000
 
-# Run the application with Gunicorn
-CMD ["gunicorn", "-w", "4", "-b", "0.0.0.0:5000", "app:create_app()"]
+# Run the application
+CMD ["python", "-m", "flask", "run", "--host=0.0.0.0", "--port=5000"]
