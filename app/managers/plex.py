@@ -25,9 +25,6 @@ class PlexManager(BaseMediaManager):
             Dict containing parsed media information or None if invalid
         """
         try:
-            # Debug log the incoming data
-            log.debug("Received webhook data: %s", data)
-
             # Check if this is a scrobble event
             if data.get("event") != "media.scrobble":
                 return None
@@ -58,15 +55,6 @@ class PlexManager(BaseMediaManager):
             if not title:
                 log.error("Title not found in Plex webhook")
                 return None
-
-            # Debug log the parsed information
-            log.debug(
-                "Parsed webhook - Type: %s, Title: %s, User: %s",
-                media_type,
-                title,
-                user_id,
-            )
-            log.debug("Full metadata: %s", metadata)
 
             return {
                 "type": media_type,
