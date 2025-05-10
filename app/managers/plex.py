@@ -79,20 +79,6 @@ class PlexManager(BaseMediaManager):
             log.error("Error parsing Plex webhook: %s", e)
             return None
 
-    def get_user_info(self, user_id: str) -> Optional[Dict[str, Any]]:
-        """
-        Get information about a user.
-        Since Plex webhooks provide the user ID directly, we just return it.
-
-        Args:
-            user_id: The ID of the user from Plex
-
-        Returns:
-            Dict containing user information
-        """
-        # Plex webhooks provide the user ID directly, so we just return it
-        return {"id": user_id}
-
     def extract_media_details(
         self, media_info: Dict[str, Any]
     ) -> Dict[str, Any]:

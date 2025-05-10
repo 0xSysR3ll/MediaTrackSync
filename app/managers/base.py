@@ -25,19 +25,6 @@ class BaseMediaManager(ABC):
         pass
 
     @abstractmethod
-    def get_user_info(self, user_id: str) -> Optional[Dict[str, Any]]:
-        """
-        Get information about a user.
-
-        Args:
-            user_id: The ID of the user
-
-        Returns:
-            Dict containing user information or None if not found
-        """
-        pass
-
-    @abstractmethod
     def extract_media_details(
         self, media_info: Dict[str, Any]
     ) -> Dict[str, Any]:
