@@ -18,7 +18,8 @@ WORKDIR /app
 COPY requirements.txt .
 
 # Install Python dependencies
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt && \
+    pip install --no-cache-dir gunicorn
 
 # Copy application code
 COPY . .
@@ -38,5 +39,5 @@ USER mediatrack
 # Expose port
 EXPOSE 5000
 
-# Run the application
-CMD ["python", "-m", "app.main"]
+# Run the application with Gunicorn
+CMD ["gunicorn", "-w", "4", "-b", "0.0.0.0:5000", "app:create_app()"]
