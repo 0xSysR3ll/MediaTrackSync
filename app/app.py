@@ -13,16 +13,15 @@ from typing import Dict, Type
 from flask import Flask
 
 # Import media managers
+from .managers.jellyfin import JellyfinManager
 from .managers.plex import PlexManager
 from .routes import register_routes
 from .services.tracktv import TrackTVService
-
 # Import tracking services
 from .services.tvtime import TVTimeService
 from .utils.config import Config
 from .utils.logger import logging as log
 
-# from managers.jellyfin import JellyfinManager
 # from managers.emby import EmbyManager
 
 
@@ -53,6 +52,7 @@ def create_app(config_path: str = "config/config.yml") -> Flask:
     # Initialize media managers
     media_managers: Dict[str, Type] = {
         "plex": PlexManager,
+        "jellyfin": JellyfinManager,
     }
 
     # Initialize service instances for each user

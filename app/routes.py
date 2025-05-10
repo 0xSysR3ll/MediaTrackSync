@@ -15,6 +15,7 @@ from .utils.logger import logging as log
 def parse_webhook_data() -> Tuple[Optional[str], Optional[Dict[str, Any]]]:
     """
     Parse webhook data from the request.
+    Handles JSON, form-encoded, and multipart form data.
 
     Returns:
         Tuple containing the media manager type and parsed data
@@ -23,24 +24,63 @@ def parse_webhook_data() -> Tuple[Optional[str], Optional[Dict[str, Any]]]:
         content_type, pdict = parse_options_header(
             request.headers.get("Content-Type", "")
         )
-        if not isinstance(content_type, str) or not isinstance(pdict, dict):
+        if not isinstance(content_type, str):
             log.error("Invalid content type")
             return None, None
 
-        if "boundary" in pdict:
-            pdict["boundary"] = pdict["boundary"].encode("utf-8")
+        # Handle JSON data
+        if content_type == "application/json":
+            payload = request.get_json()
+            if payload is None:
+                # Try to parse raw data as JSON
+                try:
+                    payload = json.loads(request.get_data(as_text=True))
+                except json.JSONDecodeError:
+                    log.error("Invalid JSON data")
+                    return None, None
+            return "jellyfin", payload
 
-        form_data = request.form.to_dict(flat=False)
-        if "payload" not in form_data:
-            log.error("Payload not found in form data")
+        # Handle form-encoded data (application/x-www-form-urlencoded)
+        if content_type == "application/x-www-form-urlencoded":
+            form_data = request.form.to_dict()
+            if not form_data:
+                log.error("Empty form data")
+                return None, None
+
+            # Try to parse the data as JSON if it's in a single field
+            for key, value in form_data.items():
+                try:
+                    payload = json.loads(value)
+                    return "jellyfin", payload
+                except json.JSONDecodeError:
+                    continue
+
+            # If no JSON field found, use the form data as is
+            return "jellyfin", form_data
+
+        # Handle multipart form data
+        if content_type.startswith("multipart/form-data"):
+            if "boundary" in pdict:
+                pdict["boundary"] = pdict["boundary"].encode("utf-8")
+
+            form_data = request.form.to_dict(flat=False)
+            if "payload" not in form_data:
+                log.error("Payload not found in form data")
+                return None, None
+
+            payload = json.loads(form_data["payload"][0])
+            # Determine media manager type from headers or payload
+            manager_type = request.headers.get("X-Media-Manager", "plex")
+            return manager_type, payload
+
+        # Try to parse raw data as JSON if no content type matches
+        try:
+            payload = json.loads(request.get_data(as_text=True))
+            return "jellyfin", payload
+        except json.JSONDecodeError:
+            log.error("Unsupported content type: %s", content_type)
             return None, None
 
-        payload = json.loads(form_data["payload"][0])
-
-        # Determine media manager type from headers or payload
-        manager_type = request.headers.get("X-Media-Manager", "plex")
-
-        return manager_type, payload
     except Exception as e:
         log.error("Error parsing webhook data: %s", e)
         return None, None

@@ -4,7 +4,7 @@ This module contains the TrackTV (Trakt.tv) service implementation.
 
 import json
 import time
-from typing import Dict, Optional
+from typing import Any, Dict, Optional
 
 import requests
 
@@ -147,6 +147,92 @@ class TrackTVService(BaseService):
                 )
                 time.sleep(int(retry_after))
 
+    def _make_trakt_request(
+        self,
+        data: Dict[str, Any],
+        show_title: str,
+        season: Optional[int] = None,
+        episode: Optional[int] = None,
+    ) -> bool:
+        """
+        Make a request to Trakt.tv API with retry logic.
+
+        Args:
+            data: The data to send to Trakt.tv
+            show_title: The title of the show (for logging)
+            season: The season number (for logging)
+            episode: The episode number (for logging)
+
+        Returns:
+            bool: True if the request was successful, False otherwise
+        """
+        max_retries = 3
+        retry_count = 0
+
+        while retry_count < max_retries:
+            response = requests.post(
+                url=self.HISTORY_URL,
+                headers=self._get_headers(),
+                data=json.dumps(data),
+                timeout=(5, 10),
+            )
+
+            # Handle rate limiting
+            if response.status_code == 429:
+                self._handle_rate_limit(response)
+                retry_count += 1
+                continue
+
+            if response.status_code == 409:
+                log.info(
+                    "[%s] Episode was already marked as watched recently",
+                    self.SERVICE_NAME,
+                )
+                return True
+
+            response.raise_for_status()
+            response_data = response.json()
+            log.debug("Response: %s", response_data)
+
+            # Check for not_found items
+            not_found = response_data.get("not_found", {})
+            if not_found.get("episodes"):
+                log.error(
+                    "[%s] Episode S%sE%s of %s not found in Trakt.tv database",
+                    self.SERVICE_NAME,
+                    season,
+                    episode,
+                    show_title,
+                )
+                return False
+            if not_found.get("shows"):
+                log.error(
+                    "[%s] Show not found in Trakt.tv database: %s",
+                    self.SERVICE_NAME,
+                    show_title,
+                )
+                return False
+            if not_found.get("seasons"):
+                log.error(
+                    "[%s] Season %s of %s not found in Trakt.tv database",
+                    self.SERVICE_NAME,
+                    season,
+                    show_title,
+                )
+                return False
+
+            # Log success
+            log.info(
+                "[%s] Successfully marked %s S%sE%s as watched!",
+                self.SERVICE_NAME,
+                show_title,
+                season,
+                episode,
+            )
+            return True
+
+        raise Exception("Max retries exceeded for rate limit")
+
     def watch_episode(
         self,
         episode_id: int,
@@ -167,20 +253,35 @@ class TrackTVService(BaseService):
             episode: The episode number
             year: The year the show started
             tmdb_id: The TMDB ID of the episode
-            imdb_id: The IMDB ID of the episode
+            imdb_id: The IMDB ID of the episode or show
         """
         try:
-            if not all([show_title, season, episode, year]):
+            if not all([show_title, season, episode]):
                 log.error(
-                    "[%s] Missing required show information (title, season, episode, year)",
+                    "[%s] Missing required show information (title, season, episode)",
                     self.SERVICE_NAME,
                 )
                 return
 
-            # Build the IDs object
-            ids = {"trakt": 1}  # Required by Trakt.tv API
+            # If we have an IMDB ID, try the direct episode method first
             if imdb_id:
-                ids["imdb"] = imdb_id
+                data = {
+                    "episodes": [
+                        {
+                            "ids": {
+                                "imdb": imdb_id,
+                            },
+                            "watched_at": time.strftime(
+                                "%Y-%m-%dT%H:%M:%S.000Z",
+                                time.gmtime(),
+                            ),
+                        }
+                    ]
+                }
+
+                log.debug("Trying direct episode method with data: %s", data)
+                if self._make_trakt_request(data, show_title, season, episode):
+                    return
 
             # Extract the year from the show title (e.g., "S.W.A.T. (2017)" -> 2017)
             show_year = None
@@ -191,6 +292,10 @@ class TrackTVService(BaseService):
                 except (ValueError, IndexError):
                     pass
 
+            # Use provided year if available, otherwise use extracted year
+            show_year = year if year is not None else show_year
+
+            # Try the show method
             data = {
                 "shows": [
                     {
@@ -199,9 +304,9 @@ class TrackTVService(BaseService):
                             if show_year
                             else show_title
                         ),  # Remove year from title
-                        "year": show_year,  # Use the extracted year
+                        "year": show_year,  # Use the year
                         "ids": {
-                            "imdb": imdb_id,  # Only use IMDB ID for the show
+                            "imdb": imdb_id,  # Use IMDB ID for the show
                         },
                         "seasons": [
                             {
@@ -220,6 +325,51 @@ class TrackTVService(BaseService):
                     }
                 ]
             }
+
+            log.debug("Trying show method with data: %s", data)
+            self._make_trakt_request(data, show_title, season, episode)
+
+        except Exception as e:
+            log.error(
+                "[%s] Error marking episode as watched: %s",
+                self.SERVICE_NAME,
+                e,
+            )
+            raise
+
+    def _watch_episode_direct(
+        self,
+        imdb_id: str,
+        show_title: str,
+        season: int,
+        episode: int,
+    ) -> None:
+        """
+        Mark an episode as watched using direct episode ID.
+        This is used when we have an episode-specific IMDB ID (e.g., from Jellyfin).
+
+        Args:
+            imdb_id: The IMDB ID of the episode
+            show_title: The title of the show (for logging)
+            season: The season number (for logging)
+            episode: The episode number (for logging)
+        """
+        try:
+            data = {
+                "episodes": [
+                    {
+                        "ids": {
+                            "imdb": imdb_id,
+                        },
+                        "watched_at": time.strftime(
+                            "%Y-%m-%dT%H:%M:%S.000Z",
+                            time.gmtime(),
+                        ),
+                    }
+                ]
+            }
+
+            log.debug("Response from traktv API: %s", data)
 
             max_retries = 3
             retry_count = 0
@@ -246,6 +396,19 @@ class TrackTVService(BaseService):
                     return
 
                 response.raise_for_status()
+                response_data = response.json()
+                log.debug("Response: %s", response_data)
+
+                # Check if the episode was found
+                if response_data.get("not_found", {}).get("episodes"):
+                    log.error(
+                        "[%s] Episode S%sE%s of %s not found in Trakt.tv database",
+                        self.SERVICE_NAME,
+                        season,
+                        episode,
+                        show_title,
+                    )
+                    return
 
                 # Log success with the provided show information
                 log.info(

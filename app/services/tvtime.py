@@ -355,6 +355,7 @@ class TVTimeService(BaseService):
         movie_id: int,
         tmdb_id: Optional[int] = None,
         imdb_id: Optional[str] = None,
+        movie_title: Optional[str] = None,
     ) -> None:
         """
         Mark a movie as watched.
@@ -363,6 +364,7 @@ class TVTimeService(BaseService):
             movie_id: The TVDB ID of the movie to mark as watched
             tmdb_id: The TMDB ID of the movie (optional)
             imdb_id: The IMDB ID of the movie (optional)
+            movie_title: The title of the movie (optional)
         """
         if not self.token:
             self.login()
@@ -370,6 +372,10 @@ class TVTimeService(BaseService):
         if not (imdb_id or tmdb_id):
             log.warning("[%s] Skipping movie, no valid ID", self.SERVICE_NAME)
             return
+
+        # Store the movie title for potential title-based search
+        if movie_title:
+            self.last_movie_title = movie_title
 
         try:
             movie_uuid = self.get_movie_uuid(
@@ -402,11 +408,19 @@ class TVTimeService(BaseService):
                 )
                 return
 
-            log.info(
-                "[%s] Successfully marked movie (ID: %s) as watched!",
-                self.SERVICE_NAME,
-                movie_id,
-            )
+            # Use movie title in log if available
+            if movie_title:
+                log.info(
+                    "[%s] Successfully marked '%s' as watched!",
+                    self.SERVICE_NAME,
+                    movie_title,
+                )
+            else:
+                log.info(
+                    "[%s] Successfully marked movie (ID: %s) as watched!",
+                    self.SERVICE_NAME,
+                    movie_id,
+                )
 
         except Exception as e:
             log.error(
