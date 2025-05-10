@@ -52,8 +52,7 @@ class TVTimeService(BaseService):
         options.add_argument("--disable-dev-shm-usage")
         options.add_argument("--disable-gpu")
         options.add_argument("--allow-origins=*")
-        options.add_argument("--log-level=3")
-        options.binary_location = "/usr/bin/firefox"
+        options.binary_location = "/usr/bin/firefox-esr"
 
         # Try both possible GeckoDriver paths
         geckodriver_paths = [

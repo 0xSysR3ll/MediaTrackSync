@@ -1,0 +1,57 @@
+# Logging configuration
+logging:
+  # Log level: DEBUG, INFO, WARNING, ERROR, CRITICAL
+  level: INFO
+  # Log format string
+  format: '%(asctime)s - %(levelname)s - %(message)s'
+  # Log file configuration
+  file:
+    # Enable file logging
+    enabled: false
+    # Log file path
+    path: 'logs/app.log'
+    # Maximum log file size in bytes
+    max_size: 10485760 # 10MB
+    # Number of backup files to keep
+    backup_count: 5
+    # Log format for file output (JSON)
+    format: 'json'
+
+# Webhook configuration
+webhook:
+  # Rate limiting configuration
+  rate_limit:
+    # Maximum requests per minute
+    requests_per_minute: 60
+    # Burst size
+    burst_size: 10
+
+# Tracking services configuration
+users:
+  # Replace with your username
+  0xsysr3ll:
+    # TVTime configuration
+    tvtime:
+      # Your TVTime email
+      username: 'lelay.lelay@gmail.com'
+      # Your TVTime password
+      password: 'k$uyzv!s@%6MTnG8@&Gd'
+
+    tracktv:
+      client_id: adbb003d620bf1e42fbc29f825eab59eafb316935c1a6e2148a3a158b1fb378b
+      client_secret: 5950755259dbe8769ae1dec596c5950d7a792deed28dbe72fe4ed300c137d560
+      code: aab90fa2b1f96e132d1b743fc8be1e6bc8ba30e5e0a6d020db745b553ac8e31b
+      redirect_uri: http://127.0.0.1:5000
+
+# Retry configuration for API calls
+retry:
+  # Maximum number of retries
+  max_retries: 3
+  # Initial delay between retries in seconds
+  initial_delay: 1
+  # Maximum delay between retries in seconds
+  max_delay: 10
+  # Exponential backoff factor
+  backoff_factor: 2
+  # Jitter factor (0-1) to add randomness to delays
+  jitter: 0.1
