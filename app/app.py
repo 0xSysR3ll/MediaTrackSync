@@ -17,6 +17,7 @@ from .managers.jellyfin import JellyfinManager
 from .managers.plex import PlexManager
 from .routes import register_routes
 from .services.tracktv import TrackTVService
+
 # Import tracking services
 from .services.tvtime import TVTimeService
 from .utils.config import Config
