@@ -4,7 +4,7 @@ This module contains the TrackTV (Trakt.tv) service implementation.
 
 import json
 import time
-from typing import Any, Dict, Optional
+from typing import Dict, Optional
 
 import requests
 
@@ -327,37 +327,3 @@ class TrackTVService(BaseService):
                 self.SERVICE_NAME,
                 tmdb_id,
             )
-
-    def get_episode_info(self, episode_id: int) -> Optional[Dict[str, Any]]:
-        """
-        Get information about an episode.
-        Note: This is not implemented in the current TrackTV integration.
-
-        Args:
-            episode_id: The TVDB ID of the episode
-
-        Returns:
-            None as this is not supported
-        """
-        log.warning(
-            "[%s] get_episode_info is not supported by TrackTV integration",
-            self.SERVICE_NAME,
-        )
-        return None
-
-    def get_movie_info(self, movie_id: int) -> Optional[Dict[str, Any]]:
-        """
-        Get information about a movie.
-        Note: This is not implemented in the current TrackTV integration.
-
-        Args:
-            movie_id: The TVDB ID of the movie
-
-        Returns:
-            None as this is not supported
-        """
-        log.warning(
-            "[%s] get_movie_info is not supported by TrackTV integration",
-            self.SERVICE_NAME,
-        )
-        return None

@@ -3,7 +3,7 @@ This module contains the base class for media managers.
 """
 
 from abc import ABC, abstractmethod
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, Optional
 
 
 class BaseMediaManager(ABC):
@@ -25,19 +25,6 @@ class BaseMediaManager(ABC):
         pass
 
     @abstractmethod
-    def get_media_info(self, media_id: str) -> Optional[Dict[str, Any]]:
-        """
-        Get information about a media item.
-
-        Args:
-            media_id: The ID of the media item
-
-        Returns:
-            Dict containing media information or None if not found
-        """
-        pass
-
-    @abstractmethod
     def get_user_info(self, user_id: str) -> Optional[Dict[str, Any]]:
         """
         Get information about a user.
@@ -51,14 +38,16 @@ class BaseMediaManager(ABC):
         pass
 
     @abstractmethod
-    def get_media_ids(self, media_info: Dict[str, Any]) -> List[str]:
+    def extract_media_details(
+        self, media_info: Dict[str, Any]
+    ) -> Dict[str, Any]:
         """
-        Get all possible IDs for a media item (e.g., TVDB, TMDB, etc.).
+        Extract all media details and identifiers from the parsed webhook data.
 
         Args:
-            media_info: The media information
+            media_info: The media information from parse_webhook
 
         Returns:
-            List of media IDs
+            Dict containing all media details (title, year, season, episode) and identifiers (TVDB, TMDB, IMDB)
         """
         pass

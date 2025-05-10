@@ -3,7 +3,7 @@ This module provides the base interface for tracking services.
 """
 
 from abc import ABC, abstractmethod
-from typing import Any, Dict, Optional, Protocol
+from typing import Optional, Protocol
 
 
 class TrackingService(Protocol):
@@ -64,30 +64,6 @@ class TrackingService(Protocol):
             movie_id: The TVDB ID of the movie to mark as watched.
             tmdb_id: The TMDB ID of the movie.
             imdb_id: The IMDB ID of the movie.
-        """
-        ...
-
-    def get_episode_info(self, episode_id: int) -> Optional[Dict[str, Any]]:
-        """
-        Get information about an episode.
-
-        Args:
-            episode_id: The TVDB ID of the episode.
-
-        Returns:
-            Dictionary containing episode information or None if not found.
-        """
-        ...
-
-    def get_movie_info(self, movie_id: int) -> Optional[Dict[str, Any]]:
-        """
-        Get information about a movie.
-
-        Args:
-            movie_id: The TVDB ID of the movie.
-
-        Returns:
-            Dictionary containing movie information or None if not found.
         """
         ...
 
@@ -153,31 +129,5 @@ class BaseService(ABC):
             movie_id: The TVDB ID of the movie to mark as watched
             tmdb_id: The TMDB ID of the movie (optional)
             imdb_id: The IMDB ID of the movie (optional)
-        """
-        pass
-
-    @abstractmethod
-    def get_episode_info(self, episode_id: int) -> Optional[Dict[str, Any]]:
-        """
-        Get information about an episode.
-
-        Args:
-            episode_id: The TVDB ID of the episode.
-
-        Returns:
-            Dictionary containing episode information or None if not found.
-        """
-        pass
-
-    @abstractmethod
-    def get_movie_info(self, movie_id: int) -> Optional[Dict[str, Any]]:
-        """
-        Get information about a movie.
-
-        Args:
-            movie_id: The TVDB ID of the movie.
-
-        Returns:
-            Dictionary containing movie information or None if not found.
         """
         pass

@@ -79,20 +79,6 @@ class PlexManager(BaseMediaManager):
             log.error("Error parsing Plex webhook: %s", e)
             return None
 
-    def get_media_info(self, media_id: str) -> Optional[Dict[str, Any]]:
-        """
-        Get information about a media item.
-        Note: This is not implemented as Plex webhooks provide all needed info.
-
-        Args:
-            media_id: The ID of the media item
-
-        Returns:
-            None as this is not supported
-        """
-        log.warning("get_media_info is not supported by Plex manager")
-        return None
-
     def get_user_info(self, user_id: str) -> Optional[Dict[str, Any]]:
         """
         Get information about a user.
@@ -107,20 +93,22 @@ class PlexManager(BaseMediaManager):
         # Plex webhooks provide the user ID directly, so we just return it
         return {"id": user_id}
 
-    def get_media_ids(self, media_info: Dict[str, Any]) -> Dict[str, Any]:
+    def extract_media_details(
+        self, media_info: Dict[str, Any]
+    ) -> Dict[str, Any]:
         """
-        Get all possible IDs for a media item from Plex metadata.
+        Extract all media details and identifiers from Plex metadata.
 
         Args:
             media_info: The media information from parse_webhook
 
         Returns:
-            Dict containing media IDs and additional metadata
+            Dict containing all media details (title, year, season, episode) and identifiers (TVDB, TMDB, IMDB)
         """
         metadata = media_info.get("metadata", {})
         guids = metadata.get("Guid", [])
 
-        ids = {
+        details = {
             "tvdb": None,
             "tmdb": None,
             "imdb": None,
@@ -136,43 +124,44 @@ class PlexManager(BaseMediaManager):
 
         # Get show title and year
         if media_info["type"] == "show":
-            ids["show_title"] = metadata.get("grandparentTitle")
-            ids["year"] = metadata.get("year")  # Use the year field directly
-            ids["season"] = metadata.get("parentIndex")  # Season number
-            ids["episode"] = metadata.get("index")  # Episode number
+            details["show_title"] = metadata.get("grandparentTitle")
+            details["year"] = metadata.get(
+                "year"
+            )  # Use the year field directly
+            details["season"] = metadata.get("parentIndex")  # Season number
+            details["episode"] = metadata.get("index")  # Episode number
             log.debug(
                 "Show info - Title: %s, Year: %s, Season: %s, Episode: %s",
-                ids["show_title"],
-                ids["year"],
-                ids["season"],
-                ids["episode"],
+                details["show_title"],
+                details["year"],
+                details["season"],
+                details["episode"],
             )
         else:
-            ids["show_title"] = metadata.get("title")
-            ids["year"] = metadata.get("year")
+            details["show_title"] = metadata.get("title")
+            details["year"] = metadata.get("year")
             log.debug(
                 "Movie info - Title: %s, Year: %s",
-                ids["show_title"],
-                ids["year"],
+                details["show_title"],
+                details["year"],
             )
 
         for guid in guids:
-            log.debug("GUID: %s", guid)
             guid_id = guid.get("id", "")
             if guid_id.startswith("tvdb://"):
                 try:
-                    ids["tvdb"] = guid_id.split("tvdb://")[-1]
+                    details["tvdb"] = guid_id.split("tvdb://")[-1]
                 except Exception as e:
                     log.error("Error extracting TVDB ID: %s", e)
             elif guid_id.startswith("tmdb://"):
                 try:
-                    ids["tmdb"] = guid_id.split("tmdb://")[-1]
+                    details["tmdb"] = guid_id.split("tmdb://")[-1]
                 except Exception as e:
                     log.error("Error extracting TMDB ID: %s", e)
             elif guid_id.startswith("imdb://"):
                 try:
-                    ids["imdb"] = guid_id.split("imdb://")[-1]
+                    details["imdb"] = guid_id.split("imdb://")[-1]
                 except Exception as e:
                     log.error("Error extracting IMDB ID: %s", e)
 
-        return ids
+        return details

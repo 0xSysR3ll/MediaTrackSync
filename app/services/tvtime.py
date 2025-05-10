@@ -528,31 +528,3 @@ class TVTimeService(BaseService):
                 return movie.get("uuid")
 
         return None
-
-    def get_episode_info(self, episode_id: int) -> Optional[Dict[str, Any]]:
-        """
-        Get information about an episode.
-        Note: This is not implemented in the current TVTime integration.
-
-        Args:
-            episode_id: The TVDB ID of the episode
-
-        Returns:
-            None as this is not supported
-        """
-        log.warning("get_episode_info is not supported by TVTime integration")
-        return None
-
-    def get_movie_info(self, movie_id: int) -> Optional[Dict[str, Any]]:
-        """
-        Get information about a movie.
-        Note: This is not implemented in the current TVTime integration.
-
-        Args:
-            movie_id: The TVDB ID of the movie
-
-        Returns:
-            None as this is not supported
-        """
-        log.warning("get_movie_info is not supported by TVTime integration")
-        return None
