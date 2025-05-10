@@ -95,10 +95,12 @@ def register_routes(app: Flask) -> None:
             log.error("No tracking services configured for user: %s", user_id)
             return make_response("", 204)
 
-        # Get media IDs
-        media_ids = manager.get_media_ids(media_info)
-        if not media_ids:
-            log.error("No media IDs found for: %s", media_info.get("title"))
+        # Extract media details
+        media_details = manager.extract_media_details(media_info)
+        if not media_details:
+            log.error(
+                "No media details found for: %s", media_info.get("title")
+            )
             return make_response("", 204)
 
         # Mark as watched in each tracking service
@@ -107,32 +109,32 @@ def register_routes(app: Flask) -> None:
                 if media_info["type"] == "show":
                     if isinstance(service, TrackTVService):
                         service.watch_episode(
-                            episode_id=media_ids["tvdb"],
-                            show_title=media_ids["show_title"],
-                            season=media_ids["season"],
-                            episode=media_ids["episode"],
-                            year=media_ids["year"],
-                            tmdb_id=media_ids["tmdb"],
-                            imdb_id=media_ids["imdb"],
+                            episode_id=media_details["tvdb"],
+                            show_title=media_details["show_title"],
+                            season=media_details["season"],
+                            episode=media_details["episode"],
+                            year=media_details["year"],
+                            tmdb_id=media_details["tmdb"],
+                            imdb_id=media_details["imdb"],
                         )
                     else:
                         # For TVTime and other services that only need TVDB ID
-                        service.watch_episode(media_ids["tvdb"])
+                        service.watch_episode(media_details["tvdb"])
                 else:
                     # Different services expect different parameters
                     if isinstance(service, TrackTVService):
                         service.watch_movie(
-                            tmdb_id=media_ids["tmdb"],
-                            imdb_id=media_ids["imdb"],
+                            tmdb_id=media_details["tmdb"],
+                            imdb_id=media_details["imdb"],
                             movie_title=media_info.get("title"),
                         )
                     else:
                         # For TVTime and other services that only need TVDB ID
                         service.watch_movie(
-                            movie_id=media_ids["tvdb"],
+                            movie_id=media_details["tvdb"],
                             movie_title=media_info.get("title"),
-                            tmdb_id=media_ids.get("tmdb"),
-                            imdb_id=media_ids.get("imdb"),
+                            tmdb_id=media_details.get("tmdb"),
+                            imdb_id=media_details.get("imdb"),
                         )
             except Exception as e:
                 log.error(
