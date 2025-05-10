@@ -161,6 +161,19 @@ def setup_logging() -> None:
     console_handler.setFormatter(console_formatter)
     logger.addHandler(console_handler)
 
+    # Suppress selenium logs (at least just show errors)
+    for name in (
+        "selenium.webdriver.common.driver_finder",  # driver finder
+        "selenium.webdriver.remote.remote_connection",  # HTTP client logs from selenium
+        "selenium.webdriver.firefox.service",  # GeckoDriver service logs
+        "selenium.webdriver.common.service",  # shared service base
+        "urllib3.connectionpool",  # low‑level HTTP debug
+        "urllib3",  # bare urllib3 logs
+    ):
+        lg = logging.getLogger(name)
+        lg.setLevel(logging.ERROR)
+        lg.propagate = False
+
     # Create file handler if enabled
     if config["file"]["enabled"]:
         # Create logs directory if it doesn't exist
