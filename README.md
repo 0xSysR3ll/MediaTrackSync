@@ -44,15 +44,15 @@ A Python application that automatically marks TV shows and movies as watched in 
 
 ## 📡 Integrations
 
-- [TVtime Integration](TVtime-Integration)
-- [TrackTV Integration](TrackTV-Integration)
+- [TVtime Integration](wiki/TVtime-Integration)
+- [TrackTV Integration](wiki/TrackTV-Integration)
 
 ---
 
 ## 📡 Webhooks
 
-- [How to Setup Plex Webhook](How-to-setup-Plex-webhook)
-- [How to Setup Jellyfin Webhook](How-to-setup-Jellyfin-Webhook)
+- [How to Setup Plex Webhook](wiki/How-to-setup-Plex-webhook)
+- [How to Setup Jellyfin Webhook](wiki/How-to-setup-Jellyfin-Webhook)
 
 ---
 
@@ -63,8 +63,8 @@ A Python application that automatically marks TV shows and movies as watched in 
    python -m app.main
    ```
 2. Configure your media server webhook endpoint:
-   - Plex → `/webhook/plex`
-   - Jellyfin → `/webhook/jellyfin`
+   - Plex: `/webhook/plex`
+   - Jellyfin: `/webhook/jellyfin`
 3. Watch content on your server; MediaTrackSync handles the rest.
 
 ---
